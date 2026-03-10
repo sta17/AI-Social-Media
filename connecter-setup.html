@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Connecter — Setup</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#f0f6ff;--s:#ffffff;--s2:#e4eef9;--bd:#b8d4ed;
+  --tx:#0d1b2e;--mu:#4a6080;--ac:#1d7fd4;--dn:#d03030;
+  --ok:#16a34a;--adm:#7c3aed;--warn:#d97706;
+}
+body{font-family:'SF Mono',ui-monospace,monospace;background:var(--bg);color:var(--tx);min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:40px 20px}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+.shell{width:100%;max-width:720px;display:flex;flex-direction:column;gap:0;animation:fadeUp .3s ease}
+
+/* Header */
+.hdr{background:var(--s);border:1px solid var(--bd);border-radius:16px 16px 0 0;padding:28px 32px;border-bottom:none}
+.hdr-logo{font-size:22px;font-weight:800;color:var(--ac);letter-spacing:-.5px;font-family:system-ui,sans-serif;margin-bottom:4px}
+.hdr-logo span{color:var(--mu);font-weight:400;font-size:13px;margin-left:6px}
+.hdr-sub{font-size:12px;color:var(--mu);font-family:system-ui,sans-serif}
+
+/* Config panel */
+.config{background:var(--s);border:1px solid var(--bd);padding:24px 32px;border-top:none;border-bottom:1px solid var(--bd)}
+.config-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap}
+.field{display:flex;flex-direction:column;gap:6px;flex:1;min-width:160px}
+.field label{font-size:10px;color:var(--mu);text-transform:uppercase;letter-spacing:.6px;font-weight:600;font-family:system-ui,sans-serif}
+.field input{background:var(--s2);border:1px solid var(--bd);border-radius:8px;padding:9px 12px;font-size:13px;color:var(--tx);outline:none;font-family:inherit;transition:border-color .2s;width:100%}
+.field input:focus{border-color:#555566}
+.field input[type=password]{letter-spacing:.1em}
+
+/* Options */
+.opts{display:flex;gap:16px;margin-top:14px;flex-wrap:wrap}
+.opt{display:flex;align-items:center;gap:8px;cursor:pointer;user-select:none}
+.opt input[type=checkbox]{width:15px;height:15px;accent-color:var(--ac);cursor:pointer}
+.opt-label{font-size:12px;color:var(--mu);font-family:system-ui,sans-serif}
+.opt:hover .opt-label{color:var(--tx)}
+
+/* Security options section */
+.sec-opts{background:var(--s);border:1px solid var(--bd);padding:18px 32px;border-top:none;border-bottom:1px solid var(--bd)}
+.sec-opts-title{font-size:11px;color:var(--ac);text-transform:uppercase;letter-spacing:.6px;font-weight:700;font-family:system-ui,sans-serif;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.sec-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:560px){.sec-grid{grid-template-columns:1fr}}
+.sec-opt{background:var(--s2);border:1px solid var(--bd);border-radius:10px;padding:12px 14px;cursor:pointer;transition:border-color .15s;display:flex;gap:10px;align-items:flex-start}
+.sec-opt:hover{border-color:#444455}
+.sec-opt input[type=checkbox]{width:14px;height:14px;accent-color:var(--ac);cursor:pointer;flex-shrink:0;margin-top:2px}
+.sec-opt-body{display:flex;flex-direction:column;gap:3px}
+.sec-opt-label{font-size:12px;color:var(--tx);font-weight:600;font-family:system-ui,sans-serif}
+.sec-opt-desc{font-size:11px;color:var(--mu);font-family:system-ui,sans-serif;line-height:1.5}
+
+/* Run button */
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+.run-btn{background:var(--ac);color:#fff;border:none;padding:10px 22px;border-radius:9px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;font-family:system-ui,sans-serif;display:flex;align-items:center;gap:7px;transition:opacity .15s;flex-shrink:0}
+.run-btn:hover{opacity:.85}
+.run-btn:disabled{opacity:.4;cursor:not-allowed}
+.run-btn .spinner{width:14px;height:14px;border:2px solid #ffffff55;border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite;display:none}
+.run-btn.running .spinner{display:block}
+.run-btn.running .btn-text{display:none}
+.util-btn{background:var(--s2);color:var(--mu);border:1px solid var(--bd);padding:10px 18px;border-radius:9px;font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;font-family:system-ui,sans-serif;transition:color .15s,border-color .15s}
+.util-btn:hover{color:var(--tx);border-color:#444455}
+.util-btn:disabled{opacity:.4;cursor:not-allowed}
+
+/* Log terminal */
+.terminal{background:var(--bg);border:1px solid var(--bd);border-top:none;border-radius:0 0 16px 16px;padding:0;overflow:hidden;min-height:320px;display:flex;flex-direction:column}
+.term-bar{background:var(--s2);border-bottom:1px solid var(--bd);padding:10px 16px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.term-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.term-dot.red{background:#e85747}
+.term-dot.yellow{background:#e8c547}
+.term-dot.green{background:#4ade80}
+.term-title{font-size:11px;color:var(--mu);font-family:system-ui,sans-serif;flex:1;text-align:center}
+.term-clear{background:none;border:none;color:var(--mu);font-size:11px;cursor:pointer;font-family:system-ui,sans-serif;padding:2px 8px;border-radius:5px;transition:color .15s}
+.term-clear:hover{color:var(--tx)}
+.log{flex:1;padding:18px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;min-height:280px}
+.log:empty::before{content:"Ready. Configure above and click Run Setup.";color:var(--mu);font-size:13px;font-family:system-ui,sans-serif}
+
+.log-line{font-size:12.5px;line-height:1.55;display:flex;align-items:flex-start;gap:8px;font-family:'SF Mono',ui-monospace,monospace}
+.log-line.info  .prefix{color:var(--mu)}
+.log-line.ok    .prefix{color:var(--ok)}
+.log-line.warn  .prefix{color:var(--warn)}
+.log-line.err   .prefix{color:var(--dn)}
+.log-line.head  .prefix{color:var(--ac)}
+.log-line.done  .prefix{color:var(--ok)}
+.log-line.sep   .prefix{color:#333340}
+.log-line.info  .text{color:var(--mu)}
+.log-line.ok    .text{color:var(--tx)}
+.log-line.warn  .text{color:var(--warn)}
+.log-line.err   .text{color:var(--dn)}
+.log-line.head  .text{color:var(--ac);font-weight:700}
+.log-line.done  .text{color:var(--ok);font-weight:700}
+.log-line.sep   .text{color:#333340}
+.prefix{flex-shrink:0;min-width:20px}
+.text{word-break:break-all}
+
+.status-bar{display:flex;align-items:center;gap:10px;padding:12px 20px;border-top:1px solid var(--bd);font-size:12px;font-family:system-ui,sans-serif;background:var(--s2);flex-shrink:0;border-radius:0 0 16px 16px}
+.status-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;background:var(--mu)}
+.status-dot.running{background:var(--ac);animation:blink .8s infinite}
+.status-dot.ok{background:var(--ok)}
+.status-dot.err{background:var(--dn)}
+.status-text{color:var(--mu)}
+
+/* Success + guidance panels */
+.success-panel{display:none;background:var(--s);border:1px solid #4ade8044;border-radius:12px;padding:20px 24px;margin-top:16px;animation:fadeUp .3s ease}
+.success-panel.show{display:block}
+.success-title{font-size:14px;font-weight:700;color:var(--ok);font-family:system-ui,sans-serif;margin-bottom:10px}
+.success-steps{display:flex;flex-direction:column;gap:7px}
+.success-step{font-size:13px;color:var(--mu);font-family:system-ui,sans-serif;display:flex;gap:10px;align-items:flex-start}
+.success-step-n{color:var(--ac);font-weight:700;flex-shrink:0;min-width:16px}
+.success-step a{color:var(--ac);text-decoration:none}
+.success-step a:hover{text-decoration:underline}
+
+.guidance-panel{background:var(--s);border:1px solid var(--bd);border-radius:12px;padding:24px;margin-top:16px;animation:fadeUp .3s ease;display:none}
+.guidance-panel.show{display:block}
+.guidance-title{font-size:14px;font-weight:700;color:var(--ac);font-family:system-ui,sans-serif;margin-bottom:16px}
+.guidance-item{border:1px solid var(--bd);border-radius:10px;margin-bottom:10px;overflow:hidden}
+.guidance-hdr{background:var(--s2);padding:12px 16px;display:flex;align-items:center;gap:10px;cursor:pointer;user-select:none}
+.guidance-hdr:hover{background:#26262e}
+.guidance-badge{font-size:10px;font-weight:700;font-family:system-ui,sans-serif;padding:2px 8px;border-radius:6px;flex-shrink:0}
+.guidance-badge.manual{background:#fb923c22;color:var(--warn);border:1px solid #fb923c44}
+.guidance-badge.code{background:#c084fc22;color:var(--adm);border:1px solid #c084fc44}
+.guidance-badge.config{background:#47c5e822;color:#47c5e8;border:1px solid #47c5e844}
+.guidance-name{font-size:13px;font-weight:600;color:var(--tx);font-family:system-ui,sans-serif;flex:1}
+.guidance-chevron{color:var(--mu);font-size:11px;transition:transform .2s;flex-shrink:0}
+.guidance-body{padding:14px 16px;border-top:1px solid var(--bd);display:none;font-family:system-ui,sans-serif;font-size:13px;color:var(--mu);line-height:1.65}
+.guidance-body.open{display:block}
+.guidance-body p{margin-bottom:10px}
+.guidance-body p:last-child{margin-bottom:0}
+.guidance-body code{background:var(--s2);border:1px solid var(--bd);border-radius:5px;padding:1px 6px;font-family:'SF Mono',ui-monospace,monospace;font-size:12px;color:var(--tx)}
+.guidance-body pre{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;overflow-x:auto;font-size:12px;color:var(--tx);margin:10px 0;line-height:1.55}
+.guidance-body ul{padding-left:18px;display:flex;flex-direction:column;gap:5px}
+.guidance-body li{list-style:disc}
+.guidance-body .note{background:#e8c54711;border:1px solid #e8c54733;border-radius:8px;padding:10px 14px;color:var(--ac);font-size:12px;margin-top:10px}
+</style>
+</head>
+<body>
+
+<div class="shell">
+
+  <div class="hdr">
+    <div class="hdr-logo">Connecter <span>· PocketBase Setup</span></div>
+    <div class="hdr-sub">Create collections, seed data, configure access rules, and apply security hardening.</div>
+  </div>
+
+  <div class="config">
+    <div class="config-row">
+      <div class="field" style="max-width:220px">
+        <label>PocketBase URL</label>
+        <input type="text" id="pbUrl" value="INSERT SERVER HERE" placeholder="INSERT SERVER HERE">
+      </div>
+      <div class="field" style="max-width:200px">
+        <label>Admin Email</label>
+        <input type="email" id="adminEmail" placeholder="admin@example.com" autocomplete="username">
+      </div>
+      <div class="field" style="max-width:180px">
+        <label>Admin Password</label>
+        <input type="password" id="adminPassword" placeholder="••••••••" autocomplete="current-password">
+      </div>
+    </div>
+    <div class="opts">
+      <label class="opt">
+        <input type="checkbox" id="optReset">
+        <span class="opt-label">Reset — drop and recreate all collections (clears all data)</span>
+      </label>
+      <label class="opt">
+        <input type="checkbox" id="optSkipSeed">
+        <span class="opt-label">Skip seed data</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- Security options -->
+  <div class="sec-opts">
+    <div class="sec-opts-title">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Security hardening options
+    </div>
+    <div class="sec-grid">
+      <label class="sec-opt">
+        <input type="checkbox" id="optOwnerRules" checked>
+        <div class="sec-opt-body">
+          <div class="sec-opt-label">Owner-only writes</div>
+          <div class="sec-opt-desc">Posts/threads/comments can only be edited or deleted by their author or staff. Prevents any logged-in user from modifying anyone else's content via the API.</div>
+        </div>
+      </label>
+      <label class="sec-opt">
+        <input type="checkbox" id="optRoleProtect" checked>
+        <div class="sec-opt-body">
+          <div class="sec-opt-label">Protect role field</div>
+          <div class="sec-opt-desc">Users can only update their own profile. Role changes are restricted to admins only, preventing self-promotion via the API.</div>
+        </div>
+      </label>
+      <label class="sec-opt">
+        <input type="checkbox" id="optRateLimits" checked>
+        <div class="sec-opt-body">
+          <div class="sec-opt-label">Rate limits</div>
+          <div class="sec-opt-desc">Applies PocketBase rate limits on auth endpoints (login, signup, password reset) to slow brute-force and spam attempts.</div>
+        </div>
+      </label>
+      <label class="sec-opt">
+        <input type="checkbox" id="optEmailVerify">
+        <div class="sec-opt-body">
+          <div class="sec-opt-label">Email verification</div>
+          <div class="sec-opt-desc">Marks new accounts as unverified. The forum will show a notice until the user clicks the verification link. Requires SMTP to be configured in PocketBase.</div>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <div class="config" style="border-top:none;padding-top:0">
+    <div class="btn-row">
+      <button class="run-btn" id="runBtn" onclick="runSetup()">
+        <div class="spinner"></div>
+        <span class="btn-text">▶ Run Setup</span>
+      </button>
+      <button class="util-btn" id="secBtn" onclick="runSecurityOnly()">🔒 Apply Security Only</button>
+      <button class="util-btn" id="verifyBtn" onclick="verifyCollections()">✔ Verify</button>
+      <button class="util-btn" id="detectBtn" onclick="detectVersion()">🔍 Detect Version</button>
+    </div>
+  </div>
+
+  <div class="terminal">
+    <div class="term-bar">
+      <div class="term-dot red"></div>
+      <div class="term-dot yellow"></div>
+      <div class="term-dot green"></div>
+      <div class="term-title">Setup Log</div>
+      <button class="term-clear" onclick="clearLog()">Clear</button>
+    </div>
+    <div class="log" id="log"></div>
+    <div class="status-bar">
+      <div class="status-dot" id="statusDot"></div>
+      <div class="status-text" id="statusText">Ready</div>
+    </div>
+  </div>
+
+  <div class="success-panel" id="successPanel">
+    <div class="success-title">✅ Setup complete — next steps</div>
+    <div class="success-steps">
+      <div class="success-step"><span class="success-step-n">1.</span><span>Open <strong>connecter-social-media.html</strong> in your browser</span></div>
+      <div class="success-step"><span class="success-step-n">2.</span><span>PocketBase running at <a id="pbUrlLink" href="#" target="_blank">—</a></span></div>
+      <div class="success-step"><span class="success-step-n">3.</span><span>Log in as any seed user, or create a new account from the login screen</span></div>
+      <div class="success-step"><span class="success-step-n">4.</span><span>Admin dashboard: <a id="adminLink" href="#" target="_blank">—</a></span></div>
+    </div>
+  </div>
+
+  <!-- Manual guidance panel -->
+  <div class="guidance-panel" id="guidancePanel">
+    <div class="guidance-title">🔐 Remaining security improvements — manual steps</div>
+
+    <div class="guidance-item">
+      <div class="guidance-hdr" onclick="toggleGuidance(this)">
+        <span class="guidance-badge config">Server config</span>
+        <span class="guidance-name">HTTPS — encrypt traffic</span>
+        <span class="guidance-chevron">▼</span>
+      </div>
+      <div class="guidance-body">
+        <p>Without HTTPS, JWT tokens and passwords cross the network in plaintext. This doesn't matter on localhost, but is critical for any network-accessible deployment.</p>
+        <p><strong>Option A — Caddy reverse proxy (recommended)</strong></p>
+        <pre># Caddyfile
+your-domain.com {
+    reverse_proxy localhost:8090
+}</pre>
+        <p>Caddy automatically provisions and renews Let's Encrypt certificates. Run <code>caddy run</code> alongside PocketBase.</p>
+        <p><strong>Option B — PocketBase built-in TLS</strong></p>
+        <pre>./pocketbase serve --https</pre>
+        <p>Works for simple setups but requires the server to be reachable on port 443 and have a valid domain.</p>
+        <p><strong>After enabling HTTPS</strong> — update the <code>PB_URL</code> constant at the top of <code>connecter-social-media.html</code> from <code>http://</code> to <code>https://</code>.</p>
+        <div class="note">⚠ If you're running on a local network only (home server, LAN), HTTPS is less urgent but still good practice. Self-signed certificates work with some browser configuration.</div>
+      </div>
+    </div>
+
+    <div class="guidance-item" style="border-color:#4ade8033">
+      <div class="guidance-hdr" style="background:#4ade8009;cursor:default">
+        <span class="guidance-badge" style="background:#4ade8022;color:var(--ok);border:1px solid #4ade8044">✅ done</span>
+        <span class="guidance-name" style="color:var(--mu)">Token expiry handling — implemented in connecter-social-media.html</span>
+      </div>
+    </div>
+
+        <div class="guidance-item" style="border-color:#4ade8033">
+      <div class="guidance-hdr" style="background:#4ade8009;cursor:default">
+        <span class="guidance-badge" style="background:#4ade8022;color:var(--ok);border:1px solid #4ade8044">✅ done</span>
+        <span class="guidance-name" style="color:var(--mu)">Strip role from self-updates — implemented in connecter-social-media.html</span>
+      </div>
+    </div>
+
+    <div class="guidance-item">
+      <div class="guidance-hdr" onclick="toggleGuidance(this)">
+        <span class="guidance-badge manual">PocketBase admin</span>
+        <span class="guidance-name">Configure SMTP for password reset &amp; verification emails</span>
+        <span class="guidance-chevron">▼</span>
+      </div>
+      <div class="guidance-body">
+        <p>Password reset and email verification both require PocketBase to be able to send email. Without SMTP configured, these flows silently fail. The forum now shows a persistent banner on login when an account is unverified — but the banner's "Resend email" button only works if SMTP is set up.</p>
+        <p><strong>Steps in PocketBase admin UI (<code>/_/</code>):</strong></p>
+        <ul>
+          <li>Go to <strong>Settings → Mail settings</strong></li>
+          <li>Enable <strong>Use SMTP mail server</strong></li>
+          <li>Fill in your SMTP host, port, username, and password</li>
+          <li>Set a <strong>Sender name</strong> and <strong>Sender address</strong> (e.g. <code>Connecter &lt;<a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="640a0b160114081d241d0b1116000b09050d0a4a070b09">[email&#160;protected]</a>&gt;</code>)</li>
+          <li>Click <strong>Save changes</strong>, then use <strong>Send test email</strong> to verify</li>
+        </ul>
+        <p><strong>Free SMTP options:</strong> Resend, Brevo (Sendinblue), Mailgun free tier, or your Gmail account with an App Password.</p>
+        <div class="note">⚠ Gmail App Passwords: Go to Google Account → Security → 2-Step Verification → App passwords. Use <code>smtp.gmail.com</code> port <code>587</code> with TLS.</div>
+      </div>
+    </div>
+
+        <div class="guidance-item" style="border-color:#4ade8033">
+      <div class="guidance-hdr" style="background:#4ade8009;cursor:default">
+        <span class="guidance-badge" style="background:#4ade8022;color:var(--ok);border:1px solid #4ade8044">✅ done</span>
+        <span class="guidance-name" style="color:var(--mu)">Staff audit log — rf_audit collection created by setup tool</span>
+      </div>
+    </div>
+
+    <div class="guidance-item">
+      <div class="guidance-hdr" onclick="toggleGuidance(this)">
+        <span class="guidance-badge manual">PocketBase admin</span>
+        <span class="guidance-name">Token lifetime &amp; session settings</span>
+        <span class="guidance-chevron">▼</span>
+      </div>
+      <div class="guidance-body">
+        <p>By default PocketBase JWTs are valid for 30 days. For a private forum this is probably fine, but you can tighten it.</p>
+        <p><strong>In PocketBase admin UI (<code>/_/</code>):</strong></p>
+        <ul>
+          <li>Go to <strong>Collections → users → Options</strong> (gear icon)</li>
+          <li>Set <strong>Auth token duration</strong> — e.g. <code>604800</code> for 7 days, <code>86400</code> for 1 day</li>
+          <li>Set <strong>Min password length</strong> — recommend at least 10 for a production forum</li>
+        </ul>
+        <p>Shorter token lifetimes mean users get logged out more often. The forum's <code>auth-refresh</code> call on page load extends the session automatically as long as the old token hasn't fully expired yet.</p>
+        <div class="note">⚠ If you shorten the token lifetime significantly (e.g. to 1 day), make sure the token expiry handling code change above is implemented first, otherwise expired sessions will cause silent breakage.</div>
+      </div>
+    </div>
+
+  </div><!-- /guidancePanel -->
+
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+// ════════════════════════════════════════════════════════════════════
+//  SEED DATA
+// ════════════════════════════════════════════════════════════════════
+const SEED_USERS = [
+  { slug:"luna",    name:"Admin",         bio:"admin",                            color:"#47c5e8", role:"admin",   email:"admin@fake.fake" },
+  { slug:"marco",   name:"Marco Vidal",   bio:"Designer by day, gamer by night 🎮", color:"#47c5e8", role:"member"  },
+  { slug:"sara",    name:"Sara Okonkwo",  bio:"Reading, writing, repeat 📚",        color:"#e847a0", role:"member"  },
+  { slug:"support", name:"Support",       bio:"support",                          color:"#4ade80", role:"support" },
+];
+const SEED_THREADS = [
+  { slugAuthor:"luna",  title:"Welcome to Connecter! 👋",       pinned:true,  locked:false, created:"2024-01-12T10:00:00.000Z" },
+  { slugAuthor:"sara",  title:"Coffee recommendations thread ☕",   pinned:false, locked:false, created:"2024-01-14T14:30:00.000Z" },
+  { slugAuthor:"marco", title:"What tools are you using in 2024?", pinned:false, locked:false, created:"2024-02-05T09:15:00.000Z" },
+  { slugAuthor:"marco", title:"Share your side projects!",         pinned:false, locked:false, created:"2024-02-10T11:00:00.000Z" },
+];
+const SEED_POSTS = [
+  { threadIdx:0, slugAuthor:"luna",  body:"Hey everyone! Welcome to our new social media. Feel free to introduce yourself below 🙌", quote:"", created:"2024-01-12T10:00:00.000Z" },
+  { threadIdx:0, slugAuthor:"marco", body:"Thanks for setting this up Luna! Really love the vibe already.", quote:"", created:"2024-01-12T10:15:00.000Z" },
+  { threadIdx:0, slugAuthor:"sara",  body:"Excited to be here! I'm Sara — bookworm and occasional blogger 📖", quote:"", created:"2024-01-12T10:22:00.000Z" },
+  { threadIdx:1, slugAuthor:"sara",  body:"Started this thread because I'm always looking for new coffee recs. Currently obsessed with Ethiopian single origin beans. Anyone else into specialty coffee?", quote:"", created:"2024-01-14T14:30:00.000Z" },
+  { threadIdx:1, slugAuthor:"luna",  body:"YES. Ethiopian + light roast = perfection. Have you tried any from Onyx Coffee Lab?", quote:"Ethiopian single origin beans. Anyone else into specialty coffee?", created:"2024-01-14T15:00:00.000Z" },
+  { threadIdx:2, slugAuthor:"marco", body:"Curious what everyone's dev stack looks like these days. I've been really into Figma + React for prototyping fast.", quote:"", created:"2024-02-05T09:15:00.000Z" },
+  { threadIdx:3, slugAuthor:"marco", body:"I've been building a small app to track my reading habits. Nothing fancy but it's been a fun weekend project!", quote:"", created:"2024-02-10T11:00:00.000Z" },
+  { threadIdx:3, slugAuthor:"sara",  body:"That's so cool! I'd love to see it when it's ready. I track mine in a spreadsheet but an app sounds way better.", quote:"", created:"2024-02-10T12:40:00.000Z" },
+];
+
+function buildCollections(ids) {
+  // PocketBase v0.22 uses "schema" array with typed field objects
+  const txt  = (name, req=false) => ({ name, type:"text",     required:req });
+  const bool = (name, req=false) => ({ name, type:"bool",     required:req });
+  const json = (name, req=false) => ({ name, type:"json",     required:req, options:{ maxSize:2000000 } });
+  const rel  = (name, req=false, colId="", cascade=false) => ({ name, type:"relation", required:req, options:{ collectionId:colId, maxSelect:1, cascadeDelete:cascade } });
+  const file = (name, max=1, size=5242880) => ({ name, type:"file", required:false, options:{ maxSelect:max, maxSize:size, mimeTypes:["image/jpeg","image/png","image/gif","image/webp"], thumbs:[] } });
+
+  return [
+    {
+      name:"users", type:"auth",
+      schema:[
+        txt("name",    true),
+        txt("av",      true),
+        txt("bio"),
+        txt("color",   true),
+        txt("role",    true),
+        txt("joined",  true),
+        txt("icon"),
+        txt("theme"),
+        file("avatar_img", 1, 2097152),
+        json("following"),
+        json("saved"),
+        json("cv"),
+      ],
+    },
+    {
+      name:"rf_threads", type:"base",
+      schema:[
+        txt("title",  true),
+        rel("author", true,  ids["users"]||"",       false),
+        bool("pinned"),
+        bool("locked"),
+      ],
+    },
+    {
+      name:"rf_posts", type:"base",
+      schema:[
+        rel("thread", true,  ids["rf_threads"]||"",  true),
+        rel("author", true,  ids["users"]||"",        false),
+        txt("body"),
+        txt("quote"),
+        bool("edited"),
+        bool("pinned"),
+        file("images", 10, 10485760),
+        bool("deleted"),
+        json("likes"),
+      ],
+    },
+    {
+      name:"rf_comments", type:"base",
+      schema:[
+        rel("profile_user", true, ids["users"]||"", false),
+        rel("author",       true, ids["users"]||"", false),
+        txt("text", true),
+        json("replies"),
+      ],
+    },
+    {
+      name:"rf_reports", type:"base",
+      schema:[
+        rel("reporter",    true, ids["users"]||"", false),
+        txt("target_type", true),
+        txt("target_id",   true),
+        txt("reason",      true),
+        txt("status"),
+        txt("context_id"),
+        txt("snapshot"),
+      ],
+    },
+    {
+      name:"rf_audit", type:"base",
+      schema:[
+        rel("actor",       true, ids["users"]||"", false),
+        txt("action",      true),
+        txt("target_type", true),
+        txt("target_id",   true),
+        txt("detail"),
+      ],
+    },
+  ];
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  SECURITY RULES
+//  Owner rules:   author can edit/delete their own content; staff can always
+//  Role protect:  only own record or admin can update users; only admin changes role
+// ════════════════════════════════════════════════════════════════════
+function buildRules(ownerRules, roleProtect) {
+  const authed = '@request.auth.id != ""';
+  const staff  = "(@request.auth.role = 'admin' || @request.auth.role = 'support')";
+  const admin  = "@request.auth.role = 'admin'";
+
+  // Base: just require login
+  const baseWrite = { createRule:authed, updateRule:authed, deleteRule:authed };
+
+  return {
+    "users": {
+      listRule:   "",
+      viewRule:   "",
+      createRule: "",  // open signup
+      updateRule: roleProtect
+        ? `${authed} && (@request.auth.id = id || ${admin})`
+        : authed,
+      deleteRule: roleProtect
+        ? `${authed} && (@request.auth.id = id || ${admin})`
+        : authed,
+    },
+    "rf_threads": {
+      listRule: "", viewRule: "",
+      createRule: authed,
+      updateRule: ownerRules ? `${authed} && (@request.auth.id = author || ${staff})` : authed,
+      deleteRule: ownerRules ? `${authed} && (@request.auth.id = author || ${staff})` : authed,
+    },
+    "rf_posts": {
+      listRule: "", viewRule: "",
+      createRule: authed,
+      updateRule: ownerRules ? `${authed} && (@request.auth.id = author || ${staff})` : authed,
+      deleteRule: ownerRules ? `${authed} && (@request.auth.id = author || ${staff})` : authed,
+    },
+    "rf_comments": {
+      listRule: "", viewRule: "",
+      createRule: authed,
+      updateRule: ownerRules ? `${authed} && (@request.auth.id = author || ${staff})` : authed,
+      deleteRule: ownerRules ? `${authed} && (@request.auth.id = author || ${staff})` : authed,
+    },
+    "rf_reports": {
+      listRule:   `${authed} && ${staff}`,
+      viewRule:   `${authed} && ${staff}`,
+      createRule: authed,
+      updateRule: `${authed} && ${staff}`,
+      deleteRule: `${authed} && ${staff}`,
+    },
+    "rf_audit": {
+      listRule:   `${authed} && ${admin}`,   // only admins can read the audit log
+      viewRule:   `${authed} && ${admin}`,
+      createRule: authed,                     // any logged-in user can write (client calls auditLog())
+      updateRule: ``,                         // no updates — append-only
+      deleteRule: ``,                         // no deletes — permanent record
+    },
+  };
+}
+
+// Rate limit config — applied to PocketBase settings endpoint
+// PocketBase v0.23+ supports rate limiting via /api/settings
+const RATE_LIMIT_RULES = [
+  { label: "auth-with-password",   maxRequests: 5,  duration: 60  },  // 5 login attempts per minute
+  { label: "request-verification", maxRequests: 3,  duration: 60  },  // 3 verification emails per minute
+  { label: "request-password-reset", maxRequests: 3, duration: 60 },  // 3 reset emails per minute
+  { label: "confirm-password-reset", maxRequests: 5, duration: 60 },  // 5 reset confirmations per minute
+];
+
+// ════════════════════════════════════════════════════════════════════
+//  LOG UI
+// ════════════════════════════════════════════════════════════════════
+const ICONS = { ok:"✓", warn:"⚠", err:"✗", head:"◆", info:"·", sep:"─", done:"★" };
+
+function addLine(type, text) {
+  const logEl = document.getElementById("log");
+  const line = document.createElement("div");
+  line.className = "log-line " + type;
+  line.innerHTML = `<span class="prefix">${ICONS[type]||"·"}</span><span class="text">${text}</span>`;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+}
+function clearLog() {
+  document.getElementById("log").innerHTML = "";
+  setStatus("idle", "Ready");
+  document.getElementById("successPanel").classList.remove("show");
+}
+function setStatus(state, text) {
+  const dot = document.getElementById("statusDot");
+  const txt = document.getElementById("statusText");
+  dot.className = "status-dot " + (state==="running"?"running":state==="ok"?"ok":state==="err"?"err":"");
+  txt.textContent = text;
+}
+function setRunning(on) {
+  ["runBtn","secBtn","verifyBtn","detectBtn"].forEach(id => {
+    const b = document.getElementById(id); if(b) b.disabled = on;
+  });
+  ["pbUrl","adminEmail","adminPassword","optReset","optSkipSeed",
+   "optOwnerRules","optRoleProtect","optRateLimits","optEmailVerify"].forEach(id => {
+    document.getElementById(id).disabled = on;
+  });
+  const btn = document.getElementById("runBtn");
+  if(btn) btn.classList.toggle("running", on);
+}
+function toggleGuidance(hdr) {
+  const body = hdr.nextElementSibling;
+  const chevron = hdr.querySelector(".guidance-chevron");
+  body.classList.toggle("open");
+  chevron.style.transform = body.classList.contains("open") ? "rotate(180deg)" : "";
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  API
+// ════════════════════════════════════════════════════════════════════
+function makeAv(name) {
+  const p = name.trim().split(/\s+/);
+  return (p.length >= 2 ? p[0][0] + p[1][0] : name.slice(0, 2)).toUpperCase();
+}
+async function api(pbUrl, path, method="GET", body=null, token=null) {
+  const headers = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = token;
+  const res = await fetch(`${pbUrl}/api/${path}`, {
+    method, headers,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (res.status === 204) return null;
+  const json = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    const err = new Error(json?.message || `HTTP ${res.status}`);
+    err.data = json; err.status = res.status; throw err;
+  }
+  return json;
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  AUTH HELPER
+// ════════════════════════════════════════════════════════════════════
+async function authenticate(pbUrl, email, password) {
+  const attempts = [
+    () => api(pbUrl, "collections/_superusers/auth-with-password", "POST", { identity:email, password }),
+    () => api(pbUrl, "collections/_superusers/auth-with-password", "POST", { email, password }),
+    () => api(pbUrl, "_superusers/auth-with-password", "POST", { identity:email, password }),
+    () => api(pbUrl, "admins/auth-with-password", "POST", { identity:email, password }),
+    () => api(pbUrl, "admins/auth-with-password", "POST", { email, password }),
+  ];
+  let lastErr;
+  for (const attempt of attempts) {
+    try { const d = await attempt(); return d.token; } catch(e) { lastErr = e; }
+  }
+  throw lastErr;
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  APPLY SECURITY — rules + rate limits + email verify
+// ════════════════════════════════════════════════════════════════════
+async function applySecuritySettings(pbUrl, token, createdIds, opts) {
+  addLine("sep", "─".repeat(52));
+  addLine("head", "Applying security settings");
+
+  // ── Collection rules ──────────────────────────────────────────
+  const rules = buildRules(opts.ownerRules, opts.roleProtect);
+  addLine("info", `Owner-only writes: ${opts.ownerRules ? "enabled" : "disabled"}`);
+  addLine("info", `Role field protection: ${opts.roleProtect ? "enabled" : "disabled"}`);
+
+  for (const [name, r] of Object.entries(rules)) {
+    const id = createdIds[name];
+    if (!id) { addLine("warn", `No ID for ${name} — skipping rules`); continue; }
+    try {
+      await api(pbUrl, `collections/${id}`, "PATCH", r, token);
+      addLine("ok", `Rules set: ${name}`);
+      if (opts.ownerRules && (name === "rf_threads" || name === "rf_posts" || name === "rf_comments")) {
+        addLine("info", `  update/delete: author or staff only`);
+      }
+      if (opts.roleProtect && name === "users") {
+        addLine("info", `  update/delete: own record or admin only`);
+      }
+    } catch(e) {
+      addLine("err", `Failed to set rules for ${name}: ${e.message}`);
+      if (e.data) addLine("err", `Detail: ${JSON.stringify(e.data)}`);
+    }
+  }
+
+  // ── Rate limits ───────────────────────────────────────────────
+  if (opts.rateLimits) {
+    addLine("sep", "─".repeat(52));
+    addLine("head", "Configuring rate limits");
+    try {
+      // Fetch current settings first
+      const settings = await api(pbUrl, "settings", "GET", null, token);
+      // Build rate limits array — merge with existing if any
+      const existingLimits = settings?.rateLimits?.rules || [];
+      const newLabels = new Set(RATE_LIMIT_RULES.map(r => r.label));
+      const merged = [
+        ...existingLimits.filter(r => !newLabels.has(r.label)),
+        ...RATE_LIMIT_RULES,
+      ];
+      await api(pbUrl, "settings", "PATCH", {
+        rateLimits: { enabled: true, rules: merged }
+      }, token);
+      RATE_LIMIT_RULES.forEach(r => {
+        addLine("ok", `Rate limit: ${r.label} → max ${r.maxRequests} req/${r.duration}s`);
+      });
+    } catch(e) {
+      if (e.status === 404 || e.status === 400) {
+        addLine("warn", `Rate limit API not available on this PocketBase version — skipping`);
+        addLine("info", `Rate limits require PocketBase v0.22+. Configure manually in Settings.`);
+      } else {
+        addLine("warn", `Rate limits partially failed: ${e.message}`);
+        if (e.data) addLine("info", `Detail: ${JSON.stringify(e.data).slice(0,120)}`);
+      }
+    }
+  }
+
+  // ── Email verification ─────────────────────────────────────────
+  if (opts.emailVerify) {
+    addLine("sep", "─".repeat(52));
+    addLine("head", "Configuring email verification");
+    const usersId = createdIds["users"];
+    if (!usersId) {
+      addLine("warn", "No users collection ID — skipping email verification config");
+    } else {
+      try {
+        // Set onlyVerified on the users collection options
+        await api(pbUrl, `collections/${usersId}`, "PATCH", {
+          options: { requireEmail: true, onlyVerified: false }
+          // onlyVerified:true would block login until verified — too strict for a forum
+          // We set it false so users can log in but the forum shows a "verify email" notice
+        }, token);
+        addLine("ok", "Email verification: accounts marked unverified on creation");
+        addLine("info", "Users can log in but will see a verification notice in the forum");
+        addLine("info", "Make sure SMTP is configured in PocketBase Settings → Mail settings");
+      } catch(e) {
+        addLine("warn", `Email verification config failed: ${e.message}`);
+        addLine("info", "You can enable this manually in PocketBase admin → Collections → users → Options");
+      }
+    }
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  SECURITY ONLY (no collection create/seed)
+// ════════════════════════════════════════════════════════════════════
+async function runSecurityOnly() {
+  const pbUrl    = document.getElementById("pbUrl").value.trim().replace(/\/$/, "");
+  const email    = document.getElementById("adminEmail").value.trim();
+  const password = document.getElementById("adminPassword").value;
+  if (!pbUrl)    { addLine("err", "PocketBase URL is required"); return; }
+  if (!email)    { addLine("err", "Admin email is required"); return; }
+  if (!password) { addLine("err", "Admin password is required"); return; }
+
+  setRunning(true);
+  setStatus("running", "Applying security…");
+
+  try {
+    addLine("head", "Security-only mode — updating rules on existing collections");
+    const token = await authenticate(pbUrl, email, password);
+    addLine("ok", "Authenticated as " + email);
+
+    // Fetch existing collection IDs
+    const existing = await api(pbUrl, "collections?perPage=200", "GET", null, token);
+    const createdIds = {};
+    (existing.items || []).forEach(c => { createdIds[c.name] = c.id; });
+
+    const opts = {
+      ownerRules:  document.getElementById("optOwnerRules").checked,
+      roleProtect: document.getElementById("optRoleProtect").checked,
+      rateLimits:  document.getElementById("optRateLimits").checked,
+      emailVerify: document.getElementById("optEmailVerify").checked,
+    };
+
+    await applySecuritySettings(pbUrl, token, createdIds, opts);
+
+    addLine("sep", "─".repeat(52));
+    addLine("done", "Security settings applied!");
+    setStatus("ok", "Security applied");
+    showGuidance();
+
+  } catch(e) {
+    if (e?.message !== "auth") {
+      addLine("err", "Error: " + (e?.message || "unknown"));
+      if (e?.data) addLine("err", "Detail: " + JSON.stringify(e.data));
+    } else {
+      addLine("err", "Authentication failed — check credentials");
+    }
+    setStatus("err", "Failed");
+  } finally {
+    setRunning(false);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  VERIFY COLLECTIONS
+// ════════════════════════════════════════════════════════════════════
+async function verifyCollections() {
+  const pbUrl    = document.getElementById("pbUrl").value.trim().replace(/\/$/, "");
+  const email    = document.getElementById("adminEmail").value.trim();
+  const password = document.getElementById("adminPassword").value;
+  if (!pbUrl||!email||!password) { addLine("err", "URL, email and password required"); return; }
+
+  setRunning(true);
+  setStatus("running", "Verifying…");
+
+  const EXPECTED = {
+    "users":       { name:{type:"text",required:true}, av:{type:"text",required:true}, bio:{type:"text",required:false}, color:{type:"text",required:true}, role:{type:"text",required:true}, joined:{type:"text",required:true}, icon:{type:"text",required:false}, theme:{type:"text",required:false}, avatar_img:{type:"file",required:false}, following:{type:"json",required:false}, saved:{type:"json",required:false}, cv:{type:"json",required:false} },
+    "rf_threads":  { title:{type:"text",required:true}, author:{type:"relation",required:true}, pinned:{type:"bool",required:false}, locked:{type:"bool",required:false} },
+    "rf_posts":    { thread:{type:"relation",required:true}, author:{type:"relation",required:true}, body:{type:"text",required:false}, quote:{type:"text",required:false}, edited:{type:"bool",required:false}, pinned:{type:"bool",required:false}, images:{type:"file",required:false}, deleted:{type:"bool",required:false}, likes:{type:"json",required:false} },
+    "rf_comments": { profile_user:{type:"relation",required:true}, author:{type:"relation",required:true}, text:{type:"text",required:true}, replies:{type:"json",required:false} },
+    "rf_reports":  { reporter:{type:"relation",required:true}, target_type:{type:"text",required:true}, target_id:{type:"text",required:true}, reason:{type:"text",required:true}, status:{type:"text",required:false}, context_id:{type:"text",required:false}, snapshot:{type:"text",required:false} },
+    "rf_audit":    { actor:{type:"relation",required:true}, action:{type:"text",required:true}, target_type:{type:"text",required:true}, target_id:{type:"text",required:true}, detail:{type:"text",required:false} },
+  };
+
+  try {
+    await api(pbUrl, "health");
+    addLine("ok", "PocketBase is running");
+    const token = await authenticate(pbUrl, email, password);
+    addLine("ok", "Authenticated");
+
+    const res = await api(pbUrl, "collections?perPage=200", "GET", null, token);
+    const allColls = res.items || [];
+    let totalOk=0, totalWarn=0, totalErr=0;
+
+    for (const [collName, expectedFields] of Object.entries(EXPECTED)) {
+      addLine("sep", "─".repeat(52));
+      addLine("head", `Collection: ${collName}`);
+      const coll = allColls.find(c => c.name === collName);
+      if (!coll) { addLine("err", "MISSING"); totalErr++; continue; }
+      addLine("ok", `Exists (id: ${coll.id})`);
+
+      const actualMap = {};
+      (coll.fields || coll.schema || []).forEach(f => { actualMap[f.name] = f; });
+
+      for (const [fn, exp] of Object.entries(expectedFields)) {
+        const actual = actualMap[fn];
+        if (!actual) { addLine("err", `  "${fn}" — MISSING`); totalErr++; continue; }
+        const t = actual.type || "?";
+        if (t !== exp.type) { addLine("warn", `  "${fn}" — type "${t}", expected "${exp.type}"`); totalWarn++; }
+        else { addLine("ok", `  "${fn}" — ${t}`); totalOk++; }
+        if (exp.type === "relation") {
+          const relId = actual.collectionId || actual.options?.collectionId || "";
+          if (!relId) { addLine("warn", `  "${fn}" — relation collectionId empty`); totalWarn++; }
+        }
+      }
+
+      // Rules summary
+      const wr = coll.updateRule || "";
+      const dr = coll.deleteRule || "";
+      const cr = coll.createRule || "";
+      const rulesSummary = [];
+      if (!cr) rulesSummary.push("create: open");
+      else if (cr.includes("auth.id")) rulesSummary.push("create: auth required ✓");
+      if (!wr) rulesSummary.push("update: open ⚠");
+      else if (wr.includes("= author")) rulesSummary.push("update: owner/staff ✓");
+      else if (wr.includes("auth.id")) rulesSummary.push("update: auth required");
+      if (!dr) rulesSummary.push("delete: open ⚠");
+      else if (dr.includes("= author")) rulesSummary.push("delete: owner/staff ✓");
+      else if (dr.includes("auth.id")) rulesSummary.push("delete: auth required");
+      addLine("info", `  rules: ${rulesSummary.join(", ")}`);
+    }
+
+    addLine("sep", "─".repeat(52));
+    if (totalErr===0 && totalWarn===0) { addLine("done", `All good — ${totalOk} checks passed`); setStatus("ok", "All verified ✓"); }
+    else if (totalErr===0)             { addLine("warn", `${totalOk} passed, ${totalWarn} warning(s)`); setStatus("ok", `${totalWarn} warning(s)`); }
+    else                               { addLine("err",  `${totalErr} error(s), ${totalWarn} warning(s)`); setStatus("err", `${totalErr} error(s)`); }
+
+  } catch(e) {
+    addLine("err", "Error: " + (e?.message || JSON.stringify(e)));
+    setStatus("err", "Verification failed");
+  } finally {
+    setRunning(false);
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  DETECT VERSION
+// ════════════════════════════════════════════════════════════════════
+async function detectVersion() {
+  const pbUrl = document.getElementById("pbUrl").value.trim().replace(/\/$/, "");
+  if (!pbUrl) { addLine("err", "Enter a PocketBase URL first"); return; }
+  setRunning(true);
+  addLine("head", "Probing PocketBase at " + pbUrl);
+  try { await api(pbUrl, "health"); addLine("ok", "Health check passed"); }
+  catch(e) { addLine("err", "Cannot reach PocketBase at " + pbUrl); setRunning(false); return; }
+
+  const probes = [
+    { label:"v0.23+ superusers (identity)",     path:"collections/_superusers/auth-with-password", body:{ identity:"probe@test.com", password:"probe" } },
+    { label:"v0.23+ superusers (email)",         path:"collections/_superusers/auth-with-password", body:{ email:"probe@test.com", password:"probe" } },
+    { label:"v0.20–22 admins (identity)",        path:"admins/auth-with-password",                  body:{ identity:"probe@test.com", password:"probe" } },
+    { label:"collections list (no auth)",        path:"collections?perPage=5", body:null, method:"GET" },
+    { label:"_superusers list",                  path:"_superusers?perPage=1", body:null, method:"GET" },
+  ];
+  for (const p of probes) {
+    try {
+      const res = await fetch(`${pbUrl}/api/${p.path}`, { method:p.method||"POST", headers:{"Content-Type":"application/json"}, body:p.body?JSON.stringify(p.body):undefined });
+      const json = await res.json().catch(()=>({}));
+      const s = res.status;
+      if (s===404)         addLine("warn", `[${s}] ${p.label} → not found`);
+      else if (s===400||s===401) addLine("ok", `[${s}] ${p.label} → endpoint EXISTS ✓`);
+      else if (s===200)    addLine("ok", `[${s}] ${p.label} → OK`);
+      else                 addLine("info", `[${s}] ${p.label} → ${json?.message||""}`);
+    } catch(e) { addLine("err", `${p.label} → network error`); }
+  }
+  addLine("info", "Done — lines marked ✓ show which auth endpoint your version uses");
+  setRunning(false);
+}
+
+// ════════════════════════════════════════════════════════════════════
+//  MAIN SETUP FLOW
+// ════════════════════════════════════════════════════════════════════
+function showGuidance() {
+  const p = document.getElementById("guidancePanel");
+  p.classList.add("show");
+  p.scrollIntoView({ behavior:"smooth", block:"start" });
+}
+
+async function runSetup() {
+  const pbUrl    = document.getElementById("pbUrl").value.trim().replace(/\/$/, "");
+  const email    = document.getElementById("adminEmail").value.trim();
+  const password = document.getElementById("adminPassword").value;
+  const doReset  = document.getElementById("optReset").checked;
+  const skipSeed = document.getElementById("optSkipSeed").checked;
+
+  if (!pbUrl||!email||!password) { addLine("err", "URL, email and password are required"); return; }
+
+  setRunning(true);
+  setStatus("running", "Running…");
+  document.getElementById("successPanel").classList.remove("show");
+
+  try {
+    // 1. Health
+    addLine("head", "Checking PocketBase connection");
+    addLine("info", `Target: ${pbUrl}`);
+    try { await api(pbUrl, "health"); addLine("ok", "PocketBase is running"); }
+    catch(e) { addLine("err", `Cannot reach PocketBase at ${pbUrl}`); addLine("err", "Run: ./pocketbase serve"); throw new Error("unreachable"); }
+
+    // 2. Auth
+    addLine("sep", "─".repeat(52));
+    addLine("head", "Authenticating");
+    let token;
+    try { token = await authenticate(pbUrl, email, password); addLine("ok", "Authenticated as " + email); }
+    catch(e) { addLine("err", "Authentication failed: " + (e?.message||"")); addLine("info", "Check your email and password"); throw new Error("auth"); }
+
+    // 3. Reset
+    if (doReset) {
+      addLine("sep", "─".repeat(52));
+      addLine("warn", "Reset — dropping existing Connecter collections");
+      const existing = await api(pbUrl, "collections?perPage=200", "GET", null, token);
+      const toDelete = (existing.items||[]).filter(c => c.name.startsWith("rf_")||c.name==="users"||c.name==="users_relay_app");
+      for (const name of ["rf_audit","rf_reports","rf_comments","rf_posts","rf_threads","users","users_relay_app"]) {
+        const coll = toDelete.find(c => c.name===name);
+        if (coll) { await api(pbUrl, `collections/${coll.id}`, "DELETE", null, token); addLine("ok", `Dropped: ${name}`); }
+      }
+    }
+
+    // 4. Create collections
+    addLine("sep", "─".repeat(52));
+    addLine("head", "Creating collections");
+    const existing2 = await api(pbUrl, "collections?perPage=200", "GET", null, token);
+    const existingNames = new Set((existing2.items||[]).map(c => c.name));
+    const createdIds = {};
+    (existing2.items||[]).forEach(c => { createdIds[c.name] = c.id; });
+
+    for (const coll of buildCollections(createdIds)) {
+      if (existingNames.has(coll.name)) { addLine("warn", `Already exists, skipping: ${coll.name}`); continue; }
+      const fresh = buildCollections(createdIds).find(c => c.name===coll.name);
+      const created = await api(pbUrl, "collections", "POST", fresh, token);
+      createdIds[coll.name] = created.id;
+      addLine("ok", `Created: ${coll.name}  (${created.id})`);
+    }
+
+    // Configure users auth options — enable email/password auth, set min password length
+    addLine("info", "Configuring users auth settings…");
+    try {
+      const usersId = createdIds["users"];
+      if (usersId) {
+        await api(pbUrl, `collections/${usersId}`, "PATCH", {
+          options: {
+            allowEmailAuth: true,
+            allowUsernameAuth: false,
+            allowOAuth2Auth: false,
+            requireEmail: true,
+            exceptEmailDomains: [],
+            onlyEmailDomains: [],
+            minPasswordLength: 5,
+          }
+        }, token);
+        addLine("ok", "Auth settings configured (email/password enabled, min password: 5)");
+      }
+    } catch(e) { addLine("warn", "Could not set auth options — set manually in PocketBase admin: enable Email/Password auth, min password 5"); }
+
+// 5. Seed
+    addLine("sep", "─".repeat(52));
+    addLine("head", "Seeding data");
+    const existingUsers = await api(pbUrl, "collections/users/records?perPage=1", "GET", null, token).catch(()=>({totalItems:0}));
+    if (existingUsers.totalItems > 0 && !doReset && !skipSeed) {
+      addLine("warn", "Data already exists — skipping seed (use Reset to reseed)");
+    } else if (skipSeed) {
+      addLine("info", "Skip seed — no data created");
+    } else {
+      const userIds = {};
+      const today = new Date().toLocaleDateString("en-US",{month:"short",day:"numeric",year:"numeric"});
+      for (const u of SEED_USERS) {
+        const seedEmail = u.email || u.slug+"@fake.fake";
+        const seedPw    = "something";
+        const rec = await api(pbUrl, "collections/users/records", "POST", {
+          name:u.name, av:makeAv(u.name), bio:u.bio, color:u.color, role:u.role, joined:today,
+          email:seedEmail, password:seedPw, passwordConfirm:seedPw, emailVisibility:false, verified:true,
+        }, token);
+        userIds[u.slug] = rec.id;
+        addLine("ok", `User: ${u.name}  (${seedEmail} / ${seedPw})`);
+      }
+      const threadIds = [];
+      for (const t of SEED_THREADS) {
+        const rec = await api(pbUrl, "collections/rf_threads/records", "POST", {
+          title:t.title, author:userIds[t.slugAuthor], pinned:t.pinned, locked:t.locked,
+          created:t.created, updated:t.created,
+        }, token);
+        threadIds.push(rec.id);
+        addLine("ok", `Thread: ${t.title.slice(0,45)}`);
+      }
+      for (const p of SEED_POSTS) {
+        await api(pbUrl, "collections/rf_posts/records", "POST", {
+          thread:threadIds[p.threadIdx], author:userIds[p.slugAuthor],
+          body:p.body, quote:p.quote||"", edited:false,
+          created:p.created, updated:p.created,
+        }, token);
+      }
+      addLine("ok", `Seeded ${SEED_POSTS.length} posts`);
+
+      // ── Seed following relationships ──────────────────────────
+      addLine("sep", "─".repeat(52));
+      addLine("head", "Seeding follow relationships");
+      const followPairs = [
+        { follower:"marco", target:"luna"  },  // Marco follows Admin
+        { follower:"luna",  target:"sara"  },  // Admin follows Sara
+      ];
+      for (const {follower, target} of followPairs) {
+        const fId = userIds[follower], tId = userIds[target];
+        if (!fId || !tId) { addLine("warn", `Skipping follow ${follower}→${target}: ID missing`); continue; }
+        // Read current following list then append
+        const rec = await api(pbUrl, `collections/users/records/${fId}`, "GET", null, token);
+        const existing = Array.isArray(rec.following) ? rec.following : (rec.following ? JSON.parse(rec.following) : []);
+        if (!existing.includes(tId)) existing.push(tId);
+        await api(pbUrl, `collections/users/records/${fId}`, "PATCH", { following: JSON.stringify(existing) }, token);
+        addLine("ok", `Follow: ${follower} → ${target}`);
+      }
+    }
+
+    // 6. Security
+    const opts = {
+      ownerRules:  document.getElementById("optOwnerRules").checked,
+      roleProtect: document.getElementById("optRoleProtect").checked,
+      rateLimits:  document.getElementById("optRateLimits").checked,
+      emailVerify: document.getElementById("optEmailVerify").checked,
+    };
+    await applySecuritySettings(pbUrl, token, createdIds, opts);
+
+    // Done
+    addLine("sep", "─".repeat(52));
+    addLine("done", "Setup complete!");
+    setStatus("ok", "Setup complete");
+
+    const panel = document.getElementById("successPanel");
+    document.getElementById("pbUrlLink").href = pbUrl;
+    document.getElementById("pbUrlLink").textContent = pbUrl;
+    document.getElementById("adminLink").href = pbUrl + "/_/";
+    document.getElementById("adminLink").textContent = pbUrl + "/_/";
+    panel.classList.add("show");
+
+    // Always show guidance for manual steps
+    showGuidance();
+
+  } catch(e) {
+    if (e?.message !== "unreachable" && e?.message !== "auth") {
+      addLine("err", "Error: " + (e?.message||"unknown"));
+      if (e?.data) addLine("err", "Detail: " + JSON.stringify(e.data));
+    }
+    setStatus("err", "Setup failed");
+  } finally {
+    setRunning(false);
+  }
+}
+
+document.getElementById("adminPassword").addEventListener("keydown", e => {
+  if (e.key === "Enter") runSetup();
+});
+</script>
+</body>
+</html>
